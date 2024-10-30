@@ -4,6 +4,10 @@
 sudo apt update
 sudo apt dist-upgrade
 
+# Hostname
+sudo sed -i 's/^/# /' /etc/hostname
+sudo sed -i '1 i\oracle.club77.org' /etc/hostname
+
 # Firewall
 sudo apt install ufw
 sudo ufw allow OpenSSH
