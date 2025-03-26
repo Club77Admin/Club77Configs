@@ -2,6 +2,7 @@
 docker run \
 --init \
 --sig-proxy=false \
+--network nextcloud-aio \
 --name nextcloud-aio-mastercontainer \
 --restart always \
 --publish 8080:8080 \
