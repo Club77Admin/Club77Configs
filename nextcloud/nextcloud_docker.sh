@@ -15,4 +15,4 @@ docker run \
 --volume /var/run/docker.sock:/var/run/docker.sock:ro \
 nextcloud/all-in-one:latest
 
-exit 0
+return
