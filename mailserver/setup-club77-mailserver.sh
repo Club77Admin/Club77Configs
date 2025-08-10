@@ -114,19 +114,6 @@ domain {
 }
 EOF
 
-# Create Rspamd local networks configuration
-echo "📝 Creating Rspamd local networks configuration..."
-cat > docker-data/dms/config/rspamd/local.d/options.inc << EOF
-# Local networks (automatically trusted for outbound scanning)
-local_addrs = [
-  "127.0.0.0/8",
-  "::1",
-  "${MAIL_IPV4}/32",
-  "${MAIL_IPV6}/128",
-  "172.16.0.0/12"  # Docker networks
-];
-EOF
-
 echo "✅ Configuration files updated!"
 echo ""
 echo "📋 Summary of changes applied:"
