@@ -5,8 +5,7 @@ sudo apt update
 sudo apt dist-upgrade
 
 # Hostname
-sudo sed -i 's/^/# /' /etc/hostname
-sudo sed -i '1 i\oracle.club77.org' /etc/hostname
+sudo sed -i 's/$/.club77.org/' /etc/hostname
 
 # Github
 ssh-keygen -t ed25519 -C "club77@club77.org" -P -q
