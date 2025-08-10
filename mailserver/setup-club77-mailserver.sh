@@ -84,7 +84,6 @@ sed -i 's/^DOVECOT_INET_PROTOCOLS=ipv4$/DOVECOT_INET_PROTOCOLS=all/' mailserver.
 # Create required directory structure
 echo "📁 Creating docker-data directory structure..."
 mkdir -p docker-data/dms/config
-mkdir -p docker-data/dms/config/rspamd/override.d
 mkdir -p docker-data/dms/config/rspamd/local.d
 
 # Create postfix-main.cf for DKIM signing of local mail (the working approach)
@@ -93,7 +92,7 @@ echo "non_smtpd_milters = inet:localhost:11332" > docker-data/dms/config/postfix
 
 # Create Rspamd DKIM signing configuration
 echo "📝 Creating Rspamd DKIM signing configuration..."
-cat > docker-data/dms/config/rspamd/override.d/dkim_signing.conf << 'EOF'
+cat > docker-data/dms/config/rspamd/local.d/dkim_signing.conf << 'EOF'
 # documentation: https://rspamd.com/doc/modules/dkim_signing.html
 enabled = true;
 sign_authenticated = true;
@@ -142,7 +141,6 @@ echo "   • DKIM signing configured for local mail"
 echo ""
 echo "📁 Directory structure created:"
 echo "   • docker-data/dms/config/"
-echo "   • docker-data/dms/config/rspamd/override.d/"
 echo "   • docker-data/dms/config/rspamd/local.d/"
 echo "   • postfix-main.cf configured for DKIM signing"
 echo "   • dkim_signing.conf configured for club77.org"
