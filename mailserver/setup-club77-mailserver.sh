@@ -40,33 +40,49 @@ cp mailserver.env.orig mailserver.env
 
 # Apply compose.yaml changes
 sed -i 's/hostname: mail.example.com/hostname: mail.club77.org/' compose.yaml
-sed -i "s/\"25:25\"/\"${MAIL_IPV4}:25:25\"/" compose.yaml
-sed -i "/${MAIL_IPV4}:25:25/a\\      - \"[${MAIL_IPV6}]:25:25\"" compose.yaml
-sed -i "s/\"143:143\"/\"${MAIL_IPV4}:143:143\"/" compose.yaml
-sed -i "/${MAIL_IPV4}:143:143/a\\      - \"[${MAIL_IPV6}]:143:143\"" compose.yaml
-sed -i "s/\"465:465\"/\"${MAIL_IPV4}:465:465\"/" compose.yaml
-sed -i "/${MAIL_IPV4}:465:465/a\\      - \"[${MAIL_IPV6}]:465:465\"" compose.yaml
-sed -i "s/\"587:587\"/\"${MAIL_IPV4}:587:587\"/" compose.yaml
-sed -i "/${MAIL_IPV4}:587:587/a\\      - \"[${MAIL_IPV6}]:587:587\"" compose.yaml
-sed -i "s/\"993:993\"/\"${MAIL_IPV4}:993:993\"/" compose.yaml
-sed -i "/${MAIL_IPV4}:993:993/a\\      - \"[${MAIL_IPV6}]:993:993\"" compose.yaml
+
+# Add comment before ports section
+sed -i '/ports:/a\      # Bind to specific mail server IPs' compose.yaml
+
+# Update port bindings with proper comments
+sed -i "s/\"25:25\".*# SMTP.*/\"${MAIL_IPV4}:25:25\"              # SMTP  (explicit TLS => STARTTLS, Authentication is DISABLED => use port 465\/587 instead)/" compose.yaml
+sed -i "/${MAIL_IPV4}:25:25/a\\      - \"[${MAIL_IPV6}]:25:25\"   # SMTP  (explicit TLS => STARTTLS, Authentication is DISABLED => use port 465\/587 instead)" compose.yaml
+
+sed -i "s/\"143:143\".*# IMAP4.*/\"${MAIL_IPV4}:143:143\"            # IMAP4 (explicit TLS => STARTTLS)/" compose.yaml
+sed -i "/${MAIL_IPV4}:143:143/a\\      - \"[${MAIL_IPV6}]:143:143\" # IMAP4 (explicit TLS => STARTTLS)" compose.yaml
+
+sed -i "s/\"465:465\".*# ESMTP.*/\"${MAIL_IPV4}:465:465\"            # ESMTP (implicit TLS)/" compose.yaml
+sed -i "/${MAIL_IPV4}:465:465/a\\      - \"[${MAIL_IPV6}]:465:465\" # ESMTP (implicit TLS)" compose.yaml
+
+sed -i "s/\"587:587\".*# ESMTP.*/\"${MAIL_IPV4}:587:587\"            # ESMTP (explicit TLS => STARTTLS)/" compose.yaml
+sed -i "/${MAIL_IPV4}:587:587/a\\      - \"[${MAIL_IPV6}]:587:587\" # ESMTP (explicit TLS => STARTTLS)" compose.yaml
+
+sed -i "s/\"993:993\".*# IMAP4.*/\"${MAIL_IPV4}:993:993\"            # IMAP4 (implicit TLS)/" compose.yaml
+sed -i "/${MAIL_IPV4}:993:993/a\\      - \"[${MAIL_IPV6}]:993:993\" # IMAP4 (implicit TLS)" compose.yaml
+
+# Fix LetsEncrypt mount (remove duplicate line and fix format)
 sed -i 's|/etc/letsencrypt:/etc/letsencrypt:ro|/etc/letsencrypt:/etc/letsencrypt|' compose.yaml
+
+# Fix cap_add formatting
 sed -i 's/# cap_add:/cap_add:/' compose.yaml
 sed -i 's/#   - NET_ADMIN/      - NET_ADMIN/' compose.yaml
 
+# Fix healthcheck command
+sed -i 's/test: "ss --listening --ipv4 --tcp | grep --silent.*"/test: "ss --listening --tcp | grep -P '\''LISTEN.+:smtp'\'' || exit 1"/' compose.yaml
+
 # Apply mailserver.env changes
-sed -i 's/OVERRIDE_HOSTNAME=/OVERRIDE_HOSTNAME=mail.club77.org/' mailserver.env
-sed -i 's/PERMIT_DOCKER=/PERMIT_DOCKER=none/' mailserver.env
-sed -i 's/ENABLE_OPENDKIM=1/ENABLE_OPENDKIM=0/' mailserver.env
-sed -i 's/ENABLE_OPENDMARC=1/ENABLE_OPENDMARC=0/' mailserver.env
-sed -i 's/ENABLE_POLICYD_SPF=1/ENABLE_POLICYD_SPF=0/' mailserver.env
-sed -i 's/ENABLE_RSPAMD=0/ENABLE_RSPAMD=1/' mailserver.env
-sed -i 's/ENABLE_AMAVIS=1/ENABLE_AMAVIS=0/' mailserver.env
-sed -i 's/ENABLE_SPAMASSASSIN=1/ENABLE_SPAMASSASSIN=0/' mailserver.env
-sed -i 's/ENABLE_FAIL2BAN=0/ENABLE_FAIL2BAN=1/' mailserver.env
-sed -i 's/SSL_TYPE=/SSL_TYPE=letsencrypt/' mailserver.env
-sed -i 's/POSTFIX_INET_PROTOCOLS=ipv4/POSTFIX_INET_PROTOCOLS=all/' mailserver.env
-sed -i 's/DOVECOT_INET_PROTOCOLS=ipv4/DOVECOT_INET_PROTOCOLS=all/' mailserver.env
+sed -i 's/^OVERRIDE_HOSTNAME=$/OVERRIDE_HOSTNAME=mail.club77.org/' mailserver.env
+sed -i 's/^PERMIT_DOCKER=$/PERMIT_DOCKER=none/' mailserver.env
+sed -i 's/^ENABLE_OPENDKIM=1$/ENABLE_OPENDKIM=0/' mailserver.env
+sed -i 's/^ENABLE_OPENDMARC=1$/ENABLE_OPENDMARC=0/' mailserver.env
+sed -i 's/^ENABLE_POLICYD_SPF=1$/ENABLE_POLICYD_SPF=0/' mailserver.env
+sed -i 's/^ENABLE_RSPAMD=0$/ENABLE_RSPAMD=1/' mailserver.env
+sed -i 's/^ENABLE_AMAVIS=1$/ENABLE_AMAVIS=0/' mailserver.env
+sed -i 's/^ENABLE_SPAMASSASSIN=1$/ENABLE_SPAMASSASSIN=0/' mailserver.env
+sed -i 's/^ENABLE_FAIL2BAN=0$/ENABLE_FAIL2BAN=1/' mailserver.env
+sed -i 's/^SSL_TYPE=$/SSL_TYPE=letsencrypt/' mailserver.env
+sed -i 's/^POSTFIX_INET_PROTOCOLS=ipv4$/POSTFIX_INET_PROTOCOLS=all/' mailserver.env
+sed -i 's/^DOVECOT_INET_PROTOCOLS=ipv4$/DOVECOT_INET_PROTOCOLS=all/' mailserver.env
 
 # Create required directory structure
 echo "📁 Creating docker-data directory structure..."
@@ -95,5 +111,5 @@ echo ""
 echo "🎯 Next steps:"
 echo "   1. Run: docker compose up -d"
 echo "   2. Generate DKIM keys: docker exec mailserver setup config dkim domain club77.org"
-echo "   3. Create email accounts: docker exec mailserver setup email add club77@club77.org"
+echo "   3. Create email accounts: docker exec mailserver setup email add user@club77.org"
 echo "   4. Update DNS with DKIM public key"
