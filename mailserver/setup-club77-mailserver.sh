@@ -41,9 +41,6 @@ cp mailserver.env.orig mailserver.env
 # Apply compose.yaml changes
 sed -i 's/hostname: mail.example.com/hostname: mail.club77.org/' compose.yaml
 
-# Add comment before ports section
-sed -i '/ports:/a\      # Bind to specific mail server IPs' compose.yaml
-
 # Update port bindings with proper comments
 sed -i "s/\"25:25\".*# SMTP.*/\"${MAIL_IPV4}:25:25\"              # SMTP  (explicit TLS => STARTTLS, Authentication is DISABLED => use port 465\/587 instead)/" compose.yaml
 sed -i "/${MAIL_IPV4}:25:25/a\\      - \"[${MAIL_IPV6}]:25:25\"   # SMTP  (explicit TLS => STARTTLS, Authentication is DISABLED => use port 465\/587 instead)" compose.yaml
@@ -60,10 +57,10 @@ sed -i "/${MAIL_IPV4}:587:587/a\\      - \"[${MAIL_IPV6}]:587:587\" # ESMTP (exp
 sed -i "s/\"993:993\".*# IMAP4.*/\"${MAIL_IPV4}:993:993\"            # IMAP4 (implicit TLS)/" compose.yaml
 sed -i "/${MAIL_IPV4}:993:993/a\\      - \"[${MAIL_IPV6}]:993:993\" # IMAP4 (implicit TLS)" compose.yaml
 
-# Fix LetsEncrypt mount (remove duplicate line and fix format)
+# Fix LetsEncrypt mount (remove :ro)
 sed -i 's|/etc/letsencrypt:/etc/letsencrypt:ro|/etc/letsencrypt:/etc/letsencrypt|' compose.yaml
 
-# Fix cap_add formatting
+# Fix cap_add formatting - use proper YAML indentation
 sed -i 's/# cap_add:/cap_add:/' compose.yaml
 sed -i 's/#   - NET_ADMIN/      - NET_ADMIN/' compose.yaml
 
