@@ -84,10 +84,49 @@ sed -i 's/^DOVECOT_INET_PROTOCOLS=ipv4$/DOVECOT_INET_PROTOCOLS=all/' mailserver.
 # Create required directory structure
 echo "📁 Creating docker-data directory structure..."
 mkdir -p docker-data/dms/config
+mkdir -p docker-data/dms/config/rspamd/override.d
+mkdir -p docker-data/dms/config/rspamd/local.d
 
 # Create postfix-main.cf for DKIM signing of local mail (the working approach)
 echo "📝 Creating postfix-main.cf for DKIM signing..."
 echo "non_smtpd_milters = inet:localhost:11332" > docker-data/dms/config/postfix-main.cf
+
+# Create Rspamd DKIM signing configuration
+echo "📝 Creating Rspamd DKIM signing configuration..."
+cat > docker-data/dms/config/rspamd/override.d/dkim_signing.conf << 'EOF'
+# documentation: https://rspamd.com/doc/modules/dkim_signing.html
+enabled = true;
+sign_authenticated = true;
+sign_local = true;
+try_fallback = false;
+use_domain = "header";
+use_redis = false; # don't change unless Redis also provides the DKIM keys
+use_esld = true;
+allow_username_mismatch = true;
+allow_hdrfrom_mismatch = false;  # Enforce envelope/header domain matching
+allow_hdrfrom_multiple = false;  # Only allow single From header
+check_pubkey = true; # you want to use this in the beginning
+symbol = "DKIM_SIGNED";          # Symbol added when message is signed
+domain {
+    club77.org {
+        path = "/tmp/docker-mailserver/rspamd/dkim/rsa-2048-mail-club77.org.private.txt";
+        selector = "mail";
+    }
+}
+EOF
+
+# Create Rspamd local networks configuration
+echo "📝 Creating Rspamd local networks configuration..."
+cat > docker-data/dms/config/rspamd/local.d/options.inc << EOF
+# Local networks (automatically trusted for outbound scanning)
+local_addrs = [
+  "127.0.0.0/8",
+  "::1",
+  "${MAIL_IPV4}/32",
+  "${MAIL_IPV6}/128",
+  "172.16.0.0/12"  # Docker networks
+];
+EOF
 
 echo "✅ Configuration files updated!"
 echo ""
@@ -103,10 +142,18 @@ echo "   • DKIM signing configured for local mail"
 echo ""
 echo "📁 Directory structure created:"
 echo "   • docker-data/dms/config/"
+echo "   • docker-data/dms/config/rspamd/override.d/"
+echo "   • docker-data/dms/config/rspamd/local.d/"
 echo "   • postfix-main.cf configured for DKIM signing"
+echo "   • dkim_signing.conf configured for club77.org"
+echo "   • options.inc configured with local networks"
 echo ""
 echo "🎯 Next steps:"
 echo "   1. Run: docker compose up -d"
-echo "   2. Generate DKIM keys: docker exec mailserver setup config dkim domain club77.org"
-echo "   3. Create email accounts: docker exec mailserver setup email add user@club77.org"
-echo "   4. Update DNS with DKIM public key"
+echo "   2. Create DKIM directory: docker exec mailserver mkdir -p /tmp/docker-mailserver/rspamd/dkim"
+echo "   3. Generate DKIM keys: docker exec mailserver rspamadm dkim_keygen -s mail -b 2048 -d club77.org -k /tmp/docker-mailserver/rspamd/dkim/rsa-2048-mail-club77.org.private.txt"
+echo "   4. Set proper permissions: docker exec mailserver chown _rspamd:_rspamd /tmp/docker-mailserver/rspamd/dkim/rsa-2048-mail-club77.org.private.txt"
+echo "   5. Create email accounts: docker exec mailserver setup email add user@club77.org"
+echo "   6. Update DNS with DKIM public key (mail._domainkey.club77.org TXT record)"
+echo "   7. Verify configuration: docker exec mailserver rspamadm configtest"
+echo "   8. Test DKIM setup: docker exec mailserver rspamadm configdump dkim_signing"
