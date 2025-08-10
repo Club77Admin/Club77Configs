@@ -57,12 +57,12 @@ sed -i "/${MAIL_IPV4}:587:587/a\\      - \"[${MAIL_IPV6}]:587:587\" # ESMTP (exp
 sed -i "s/\"993:993\".*# IMAP4.*/\"${MAIL_IPV4}:993:993\"            # IMAP4 (implicit TLS)/" compose.yaml
 sed -i "/${MAIL_IPV4}:993:993/a\\      - \"[${MAIL_IPV6}]:993:993\" # IMAP4 (implicit TLS)" compose.yaml
 
-# Fix LetsEncrypt mount (remove :ro)
-sed -i 's|/etc/letsencrypt:/etc/letsencrypt:ro|/etc/letsencrypt:/etc/letsencrypt|' compose.yaml
+# Add the missing letsencrypt volume mount
+sed -i '/- \/etc\/localtime:\/etc\/localtime:ro$/a\      - /etc/letsencrypt:/etc/letsencrypt' compose.yaml
 
-# Fix cap_add formatting - use proper YAML indentation
+# Fix cap_add formatting - use proper YAML indentation (should be aligned with other top-level keys)
 sed -i 's/# cap_add:/cap_add:/' compose.yaml
-sed -i 's/#   - NET_ADMIN/      - NET_ADMIN/' compose.yaml
+sed -i 's/#   - NET_ADMIN/    - NET_ADMIN/' compose.yaml
 
 # Fix healthcheck command
 sed -i 's/test: "ss --listening --ipv4 --tcp | grep --silent.*"/test: "ss --listening --tcp | grep -P '\''LISTEN.+:smtp'\'' || exit 1"/' compose.yaml
