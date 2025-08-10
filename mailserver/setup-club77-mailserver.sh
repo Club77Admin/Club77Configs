@@ -1,5 +1,5 @@
 #!/bin/bash
-# setup-club77-mailserver.sh
+# setup-mailserver.sh
 
 set -e
 
@@ -23,8 +23,8 @@ echo "   IPv4: $MAIL_IPV4"
 echo "   IPv6: $MAIL_IPV6"
 
 # Create directory
-mkdir -p club77-mailserver
-cd club77-mailserver
+mkdir -p mailserver
+cd mailserver
 
 # Download original files
 echo "📥 Downloading original docker-mailserver files..."
