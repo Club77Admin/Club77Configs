@@ -62,7 +62,7 @@ sed -i '/- \/etc\/localtime:\/etc\/localtime:ro$/a\      - /etc/letsencrypt:/etc
 
 # Fix cap_add formatting - use proper YAML indentation (should be aligned with other top-level keys)
 sed -i 's/# cap_add:/cap_add:/' compose.yaml
-sed -i 's/#   - NET_ADMIN/ - NET_ADMIN/' compose.yaml
+sed -i 's/#   - NET_ADMIN/  - NET_ADMIN/' compose.yaml
 
 # Fix healthcheck command
 sed -i 's/test: "ss --listening --ipv4 --tcp | grep --silent.*"/test: "ss --listening --tcp | grep -P '\''LISTEN.+:smtp'\'' || exit 1"/' compose.yaml
