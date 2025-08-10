@@ -1,9 +1,0 @@
-[SMTP]
-title=Mail server (SMTP)
-description=Mail server (SMTP)
-ports=25/tcp
-
-[SMTP Secure]
-title=Mail server (SMTP Secure)
-description=Mail server (SMTP Secure)
-ports=587/tcp
